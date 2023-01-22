@@ -1,6 +1,6 @@
 <h1>Users</h1>
 <div class="mb-2">
-<a class="btn btn-primary" href="create.php">Create</a>
+<a class="btn btn-primary" href="?action=Create">Create</a>
 </div>
 <table class="table table-bordered table-striped table-hover">
 <tr>
@@ -18,8 +18,8 @@
     <td><?php echo $user['city']; ?></td>
     <td>
     <a class="btn btn-sm btn-outline-primary" href="?action=Edit&id=<?php echo $user['id']; ?>">Edit</a>
-    <a class="btn btn-sm btn-outline-primary" href="view.php?id=<?php echo $user['id']; ?>">View</a>
-    <a class="btn btn-sm btn-outline-danger" href="delete.php?id=<?php echo $user['id']; ?>">Delete</a>
+    <a class="btn btn-sm btn-outline-primary" href="?action=View&id=<?php echo $user['id']; ?>">View</a>
+    <a class="btn btn-sm btn-outline-danger" href="?action=Delete&id=<?php echo $user['id']; ?>">Delete</a>
     </td>
 </tr>
 <?php } ?>
