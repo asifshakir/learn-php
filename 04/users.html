@@ -73,9 +73,16 @@
                 const sortDir = ref('asc');
 
                 const createUser = () => {
-
+                    fetch('https://example.com/profile', {
+                        method: 'POST', // or 'PUT'
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    })
                 }
-                
+
+
                 const fetchFromServer = () => {
                     const usersUrl = `${apiUrl}?page=${page.value}&pageSize=${pageSize.value}&search=${encodeURIComponent(search.value)}&sortBy=${sortBy.value}&sortDir=${sortDir.value}`;
                     fetch(usersUrl)
