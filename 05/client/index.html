@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+
+        <h1>Quiz</h1>
+
+        <div id="app">
+
+            <div v-if="disableQuiz" class="alert alert-primary">
+                You scored {{ score }} out of {{ questions.length }}
+            </div>
+
+            <div class="card mb-2" v-for="(q, qidx) in questions">
+                <div class="card-body">
+                    <h5 class="card-title">{{q.question}}</h5>
+                    <ul class="list-group">
+                        <li 
+                            class="list-group-item" 
+                            :class="getClass(qidx, o)"
+                            v-for="(o, idx) in q.options">
+                            <label>
+                                <input 
+                                    v-model="answers[qidx]" 
+                                    :disabled = "disableQuiz"
+                                    :value="o" 
+                                    type=radio>
+                                {{ o }}
+
+                                <span v-if="disableQuiz && results[qidx].correct_answer == o">
+                                    Correct Answer
+                                </span>
+
+                                <span v-if="disableQuiz && results[qidx].your_answer == o">
+                                    Your Answer
+                                </span>
+
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mb-2">
+                <button
+                    @click="saveQuiz" 
+                    :disabled="!allQuestionsAnswered()"
+                    class="btn btn-primary">Save Quiz</button>
+            </div>
+
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script>
+        const {createApp, ref} = Vue;
+        
+        const App = {
+            setup() {
+                const questions = ref([]);
+                const answers = ref([]);
+                const results = ref([]);
+                const disableQuiz = ref(false);
+                const score = ref(0);
+
+                const base_url = '../server/quiz-api.php?action=';
+
+                const quizUrl = base_url + 'questions';                
+                fetch(quizUrl)
+                    .then(x => x.json())
+                    .then(x => questions.value = x);
+
+
+                const allQuestionsAnswered = () => {
+                    const totalAnswers = answers
+                                        .value
+                                        .filter(x => x !== null)
+                                        .length;
+                    return !disableQuiz.value 
+                            && totalAnswers === questions.value.length;
+                }
+
+                const saveQuiz = () => {
+                    const answersUrl = base_url + 'answers';       
+
+                    const questionIds = questions.value.map(x => x.id);
+
+                    fetch(answersUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            questionIds: questionIds,
+                            answers: answers.value
+                        }),
+                    })
+                        .then(x => x.json())
+                        .then(x => {
+                            disableQuiz.value = true;
+                            results.value = x;
+
+                            results.value.map((x) => {
+                                if(x.correct_answer === x.your_answer) {
+                                    score.value++;
+                                }
+                            });
+                        });
+                }
+
+                const getClass = (qidx, current_option) => {
+
+                    let className = "";
+
+                    if(disableQuiz.value) {
+                        const your_ans = answers.value[qidx];
+                        const correct_ans = results.value[qidx].correct_answer;
+
+                        if(current_option == correct_ans) {
+                            className = "bg-success text-light"; // green
+                        } else if(current_option == your_ans) {
+                            className = "bg-danger text-light"; //red
+                        }
+
+                    }
+
+                    return className;
+                }
+
+                return {
+                    questions,
+                    answers,
+                    allQuestionsAnswered,
+                    saveQuiz,
+                    disableQuiz,
+                    getClass,
+                    results,
+                    score
+                }
+            }
+        };
+
+        createApp(App).mount("#app");
+    </script>
+</body>
+</html>
