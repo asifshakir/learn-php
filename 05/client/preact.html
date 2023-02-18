@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bootstrap Site</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+</head>
+<body>
+
+    <div class="container">
+        <h1>TSR Quiz</h1>    
+        <div id="app"></div>
+    </div>
+
+<script type="module">
+import {
+    html,
+    useState,
+    useEffect,
+    render,
+    signal,
+    computed,
+  } from "https://cdn.jsdelivr.net/npm/preact-htm-signals-standalone/dist/standalone.js";
+
+const base_url = '../server/quiz-api.php?action=';
+const quizUrl = base_url + 'questions';                
+const answersUrl = base_url + 'answers';       
+
+const questions = signal([]);
+const disabled = signal(false);
+const results = signal([]);
+const answers = signal([]);
+const total = signal(0);
+const disableSubmit = computed(() => disabled.value === true || total.value !== questions.value.length);
+const score = signal(0);
+
+const getClassName = (qidx, option) => {
+        let className = "list-group-item";
+        if(disabled.value) {
+            if(answers.value[qidx].correct_answer === option) {
+                className += ' bg-success';
+            }
+        } 
+        return className;
+    };
+
+fetch(quizUrl).then(x => x.json()).then(x => {
+    questions.value = x
+    questions.value.map(x => {
+        answers.value.push(null)
+        results.value.push({correct_answer: null, your_answer: null});
+    });
+});
+
+function App() {
+    const saveQuiz = () => {
+        const questionIds = questions.value.map(x => x.id);
+        fetch(answersUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                questionIds: questionIds,
+                answers: answers.value
+            }),
+        })
+        .then(x => x.json())
+        .then(x => {
+            disabled.value = true;
+            results.value = x;
+            results.value.map((x) => {
+                if(x.correct_answer === x.your_answer) {
+                    score.value++;
+                }
+            });
+        });
+    }
+
+    return html`
+      <div>
+        ${disabled.value ? 
+            html`<div class="alert alert-info">You scored ${score.value} out of ${questions.value.length}</div>`
+            : ''}
+        ${questions.value.map((question, qidx) => html`
+        <div class='card mb-2'>
+            <div class='card-body'>
+                <h5 class='card-title'> ${question.question}</h5>
+                <ul class="list-group">
+                    ${question.options.map((option, idx) => html`
+                        <li className=${'list-group-item' + (results.value[qidx].correct_answer === option ? ' bg-success text-white' : (results.value[qidx].your_answer === option ? ' bg-danger text-white' : ''))}><label>
+                            <input
+                                disabled="${disabled.value}" 
+                                type="radio" 
+                                class="mr-1"
+                                onClick=${() => { 
+                                    answers.value[qidx] = option; 
+                                    total.value = answers.value.filter(x => x).length;
+                                }}
+                                name=option_${qidx} />${option}
+                                
+                                ${(results.value[qidx].correct_answer === option ? ' Correct Answer' : '')}
+                                ${(results.value[qidx].your_answer === option ? ' Your Answer' : '')}
+
+                                </label>
+                        </li>`)}
+                </ul>
+            </div>
+        </div>
+        `)}
+        <div class="card">
+            <button 
+                class="btn btn-primary" 
+                disabled=${disableSubmit.value}
+                onClick=${saveQuiz}>Save Quiz</button>
+        </div>
+      </div>
+    `;
+}
+
+render( html`<${App} page="All" />`, document.getElementById("app") );
+</script>
+
+</body>
+</html>
