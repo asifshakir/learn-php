@@ -11,7 +11,6 @@
   $sortDir = $_GET['sortDir'] ?? 'asc';
   
   $permittedSortByFields = ['name', 'email', 'city'];
-
   if(array_search($sortBy, $permittedSortByFields) === FALSE) $sortBy = 'name';
 
   if($sortDir !== 'asc') $sortDir = 'desc';
@@ -19,7 +18,7 @@
   $sql = 'SELECT SQL_CALC_FOUND_ROWS id, name, email, city FROM users ';
   $params = [];
   if($search) {
-    $sql .= ' WHERE name LIKE :s1 OR city LIKE :s2 OR city LIKE :s3';
+    $sql .= ' WHERE name LIKE :s1 OR city LIKE :s2 OR email LIKE :s3';
     $params = ['s1' => "%$search%", 's2' => "%$search%", 's3' => "%$search%"];
   }
   $start = (($page - 1) * $pageSize);
@@ -47,3 +46,6 @@
     'sortBy' => $sortBy,
     'sortDir' => $sortDir
   ]);
+
+
+

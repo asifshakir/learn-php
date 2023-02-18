@@ -13,7 +13,7 @@
                 title="Search"
                 class="form-control"
                 placeholder="Search"
-                v-on:keyup.enter="fetchFromServer"
+                v-on:keyup="fetchFromServer"
                 v-model="search"
                 type="search" />
         </div>
@@ -82,19 +82,39 @@
                     })
                 }
 
+                /*
+                    200 = Ok
+                    404 = Page not found
+                    500 = Error on server
+                    401 = Unauthorized
+                    301 = Redirect
+
+                    Selenium
+                    Playwright
+                */
+
+                let timeoutId;
+                function debounceSearch(searchUrl, callback, delay = 500) {
+                    return () => {
+                        clearTimeout(timeoutId);
+                        timeoutId = setTimeout(() => {
+                        fetch(searchUrl)
+                            .then(response => response.json())
+                            .then(data => callback(data));
+                        }, delay);
+                    };
+                }
 
                 const fetchFromServer = () => {
                     const usersUrl = `${apiUrl}?page=${page.value}&pageSize=${pageSize.value}&search=${encodeURIComponent(search.value)}&sortBy=${sortBy.value}&sortDir=${sortDir.value}`;
-                    fetch(usersUrl)
-                        .then(x => x.json())
-                        .then(x => {
+                    debounceSearch(usersUrl, (x) => {
                             users.value = x.data;
                             totalCount.value = x.totalCount;
                             pageSize.value= x.pageSize;
                             totalPages.value = x.totalPages;
                             sortBy.value = x.sortBy,
                             sortDir.value = x.sortDir
-                        });
+                    })();
                 }
 
                 Vue.watch([pageSize, page, sortBy, sortDir], () => {
