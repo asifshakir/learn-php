@@ -101,19 +101,21 @@ function App() {
                 {q.options.map((o, idx) => 
                     <li className={getClassName(qidx, o)} 
                         key={idx}>
-                        <input 
-                            type="radio"
-                            onClick={() => {
-                                setAnswers((curr) => {
-                                    curr[qidx] = o;
-                                    return [...curr];
-                                })
-                            }}
-                            disabled={disabled}
-                            className="mr-2" />
-                        {o}
-                        {disabled && results[qidx].correct_answer === o ? ' Correct answer' : false }
-                        {disabled && results[qidx].your_answer === o ? ' Your  answer' : false }
+                        <label>
+                            <input 
+                                type="radio"
+                                onClick={() => {
+                                    setAnswers((curr) => {
+                                        curr[qidx] = o;
+                                        return [...curr];
+                                    })
+                                }}
+                                disabled={disabled}
+                                className="mr-2" />
+                            {o}
+                            {disabled && results[qidx].correct_answer === o ? ' Correct answer' : false }
+                            {disabled && results[qidx].your_answer === o ? ' Your  answer' : false }
+                        </label>
                     </li>                    
                 )}
                 </ul>
