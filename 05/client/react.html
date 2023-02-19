@@ -1,0 +1,138 @@
+!<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSR Quiz in React</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+</head>
+<body>
+
+
+<script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<div class="container">
+    <h1>TSR Quiz (React)</h1>
+    <div id="root"></div>
+</div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+const base_url = '../server/quiz-api.php?action=';
+
+function App() {
+    
+    const [questions, setQuestions] = useState([]);
+    const [answers, setAnswers] = useState([]);
+    const [results, setResults] = useState([]);
+    const [disabled, setDisabled] = useState(false);
+    const [submitDisabled, setSubmitDisabled] = useState(true);
+    const [score, setScore] = useState(0);
+    const [total, setTotal] = useState(0);
+        
+    useEffect(() => {
+        const quizUrl = base_url + 'questions';                
+        fetch(quizUrl).then(x => x.json()).then(x => {
+            setQuestions(x);
+            x.map(y => {
+                setAnswers((curr) => [...curr,null]);
+                setResults((curr) => [...curr,{correct_answer:null, your_answer:null}]);
+            });
+        });
+    }, []);
+
+    useEffect(() => {
+        setScore(results.reduce((total, curr) =>
+            (total + (curr.correct_answer 
+                && curr.correct_answer === curr.your_answer 
+                    ? 1 : 0))
+        ,0));
+    }, [results]);
+
+    useEffect(() => {
+        setTotal(answers.filter(x => x).length);
+    }, [answers]);
+
+    useEffect(() => {
+        setSubmitDisabled(disabled === true || total !== questions.length)
+    }, [questions, disabled, total]);
+
+    const saveQuiz = () => {
+        const answersUrl = base_url + 'answers';       
+        const questionIds = questions.map(x => x.id);
+        fetch(answersUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({questionIds, answers}),
+        })
+        .then(x => x.json())
+        .then(x => {
+            setDisabled(true);
+            setResults(x);
+        });
+    }
+
+    const getClassName = (qidx, o) => {
+        return 'list-group-item' 
+            + (disabled 
+                ? ((results[qidx].correct_answer) === o 
+                    ? ' bg-success text-light'
+                    : ((results[qidx].your_answer) === o 
+                        ? ' bg-danger text-light'
+                        : '')) 
+                : '');
+    }
+
+    return <>    
+    {questions.map((q, qidx) => 
+        <div className="card mb-2" key={q.id}>
+            {disabled ? 
+                <div className="alert alert-success">
+                You scored {score} out of {questions.length}
+                </div>
+            : false }
+            <div className="card-body">
+                <h5 className="card-title">{q.question}</h5>
+                <ul className="list-group">
+                {q.options.map((o, idx) => 
+                    <li className={getClassName(qidx, o)} 
+                        key={idx}>
+                        <input 
+                            type="radio"
+                            onClick={() => {
+                                setAnswers((curr) => {
+                                    curr[qidx] = o;
+                                    return [...curr];
+                                })
+                            }}
+                            disabled={disabled}
+                            className="mr-2" />
+                        {o}
+                        {disabled && results[qidx].correct_answer === o ? ' Correct answer' : false }
+                        {disabled && results[qidx].your_answer === o ? ' Your  answer' : false }
+                    </li>                    
+                )}
+                </ul>
+            </div>
+        </div>)}
+        <div className="card">
+            <div className="card-body">
+                <button 
+                    disabled={submitDisabled}
+                    onClick={() => saveQuiz()}
+                    className="btn btn-primary">Save Quiz</button>
+            </div>
+        </div>
+    </>;
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+
+</body>
+</html>
+
