@@ -35,16 +35,6 @@ const total = signal(0);
 const disableSubmit = computed(() => disabled.value === true || total.value !== questions.value.length);
 const score = signal(0);
 
-const getClassName = (qidx, option) => {
-        let className = "list-group-item";
-        if(disabled.value) {
-            if(answers.value[qidx].correct_answer === option) {
-                className += ' bg-success';
-            }
-        } 
-        return className;
-    };
-
 fetch(quizUrl).then(x => x.json()).then(x => {
     questions.value = x
     questions.value.map(x => {
