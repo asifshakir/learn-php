@@ -88,13 +88,13 @@ function App() {
     }
 
     return <>    
-    {questions.map((q, qidx) => 
-        <div className="card mb-2" key={q.id}>
-            {disabled ? 
+    {disabled ? 
                 <div className="alert alert-success">
                 You scored {score} out of {questions.length}
                 </div>
             : false }
+    {questions.map((q, qidx) => 
+        <div className="card mb-2" key={q.id}>
             <div className="card-body">
                 <h5 className="card-title">{q.question}</h5>
                 <ul className="list-group">
