@@ -1,0 +1,152 @@
+!<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TSR Quiz in React</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+      integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <div class="container">
+      <h1>ToDo</h1>
+      <div id="root"></div>
+    </div>
+
+    <script type="text/babel">
+      const {useState, useEffect, useMemo} = React;
+            
+
+      const defaultTasks = [];
+
+      // setting some default content
+      defaultTasks.push({ id: 1, label: 'Create website', completed: false });
+      defaultTasks.push({ id: 2, label:'Learn React', completed: false }),
+      defaultTasks.push({ id: 3, label:'Learn React Native', completed: true });
+
+      function App() {
+
+        // setting some global state for storing
+        // new Task and List of Tasks
+        const [newTask, setNewTask] = useState('');
+        const [tasks, setTasks] = useState(defaultTasks);
+
+        // When we click on the checkbox for a given task
+        // change the completed state of that task to 
+        // opposite of its current state.
+        // if it was true we make it false
+        // else we leave it as true
+        const handleTaskChange = (taskId) => {
+            tasks.map(x => 
+                x.completed = (x.id == taskId 
+                                    ? !x.completed
+                                        :x.completed));
+            // update tasks as the changed values
+            setTasks([...tasks]);
+        }
+
+        // create a new task with an 
+        // ID = current time in miliseconds
+        // Label = texbox value
+        // Completed = false
+        const handleAddNewTask = () => {
+            setTasks([...tasks, {
+                    id: Date.now(),
+                    label: newTask, 
+                    completed: false
+                }]);
+
+            // Empty the value of the Textbox
+            setNewTask('');
+        }
+
+        // Remove the task which matches the selected Task
+        // using ID
+        const handleDeleteTask = (taskId) => {
+            setTasks([...
+                tasks.filter(x => x.id!=taskId)
+            ]);
+        }
+
+        // Memo = Computed values / Calculated value
+        const incompleteTasks = useMemo(() => 
+            tasks.filter(x => !x.completed), [tasks]);
+
+        const completedTasks = useMemo(() => 
+            tasks.filter(x => x.completed), [tasks]);
+
+        return <>
+            <div className="row">
+                <div className="col">
+                    <input 
+                        className="form-control"
+                        type="text" 
+                        placeholder="Enter task"
+                        value={newTask}
+                        onChange={(e) => setNewTask(e.target.value)}
+                        />
+                </div>
+                <div className="col-auto">
+                    <button 
+                        onClick={handleAddNewTask}
+                        className="btn btn-primary">
+                        Add
+                    </button>
+                </div>
+            </div>
+            <h3>Incomplete Tasks</h3>
+            <ul className="list-group">
+                {incompleteTasks.length ? 
+                    incompleteTasks.map((task, idx) => 
+                    <li className="list-group-item" key={idx}>
+                        <input 
+                            checked={task.completed}
+                            onChange={() => handleTaskChange(task.id)}
+                            className="mr-1" 
+                            type="checkbox" />
+                        {task.completed ?
+                            <><del>{task.label}</del>
+                            <button 
+                                className="btn btn-danger btn-sm"
+                                onClick={() => handleDeleteTask(idx)}>
+                                Delete
+                            </button></>
+                            : task.label}
+                    </li>
+                    )
+                    : <h5>No incomlete tasks</h5>}
+            </ul>
+            <h3>Completed Tasks</h3>
+            <ul className="list-group">
+                {completedTasks.length ? 
+                    completedTasks.map((task, idx) => 
+                    <li className="list-group-item" key={idx}>
+                        <input 
+                            checked={task.completed}
+                            onChange={() => handleTaskChange(task.id)}
+                            className="mr-1" 
+                            type="checkbox" />
+                    <del>{task.label}</del>
+                    <button 
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDeleteTask(task.id)}>
+                        Delete
+                    </button>
+                    </li>
+                    )
+                    : <h5>No completed tasks</h5>}
+            </ul>
+        </>      
+      }
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
+  </body>
+</html>

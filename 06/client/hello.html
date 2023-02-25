@@ -1,0 +1,40 @@
+!<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TSR Quiz in React</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+      integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <div class="container">
+      <h1>Hello Example</h1>
+      <div id="tsr"></div>
+    </div>
+
+    <script type="text/babel">
+      const {useState, useEffect} = React;
+
+      function App() {
+        const [person, setPerson] = useState('World');
+        return <>
+          <h1>Hello {person}</h1>
+          <input 
+            type="text" 
+            value={person} 
+            onChange={(e) => setPerson(e.target.value)} />
+        </>      
+      }
+      ReactDOM.render(<App />, document.getElementById("tsr"));
+    </script>
+  </body>
+</html>
